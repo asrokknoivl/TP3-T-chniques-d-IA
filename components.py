@@ -1,6 +1,7 @@
 import math
 import time
 
+agent_number= 10
 grid_w= 25
 grid_h= 25
 agents = [[0]* grid_w for _ in range(grid_h)]
@@ -64,8 +65,10 @@ class Agent:
         return agents[y][x]== 0 if (x,y)!= (self.x_goal, self.y_goal) else True
     
     def move(self, x, y):
+        counter= 0
         while not self.isAvailable(x, y):
-            pass
+            print(f"Agent {self.getId()} waiting until road clears")
+            time.sleep(1)
         agents[self.y_origin][self.x_origin]= 0
         agents[y][x]= "p"+str(self.id)
         self.x_origin= x
@@ -103,7 +106,6 @@ def displayGrid():
         print()
     print()
 
-displayGrid()
 if __name__== '__main__':
     agent1= Agent(1, 4, 6, 12, 15)
     agents[agent1.getYOrigin()][agent1.getXOrigin()]= "p"+str(agent1.getId())
