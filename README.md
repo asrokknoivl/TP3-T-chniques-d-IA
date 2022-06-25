@@ -1,4 +1,4 @@
-# TP3-Téchniques-d'IA
+# AI techniques, agent simulation to solve 8 puzzle
 AI school project, Multi-Agent interaction
 
 The idea is to simulate a grid where several agents are placed on a certain position with the intention of moving to another one, all moving at the same time.
