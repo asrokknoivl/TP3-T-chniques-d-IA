@@ -12,6 +12,3 @@ Simple strategies that agents can follow:
 - IDFS
 - Greedy search
 - A*
-
-Function to find the next move
-in conflict, priority goes to the agent with weaker weight/smaller distance to goal, if distances are equal agent to go is chosen based on id.
