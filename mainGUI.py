@@ -4,7 +4,7 @@ from turtle import window_height, window_width
 import pygame
 from pygame.locals import *
 import sys
-from main import *
+from components import *
 import time
 pygame.init()
 FPS= 60
