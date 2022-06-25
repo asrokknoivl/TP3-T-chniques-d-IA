@@ -5,35 +5,35 @@ import pygame
 from pygame.locals import *
 import sys
 from main import *
-
+import time
 pygame.init()
 FPS= 60
 
-RED1= (255, 0, 0)
-RED2= (245, 0, 0)
-RED3= (235, 0, 0)
-RED4= (225, 0, 0)
-RED5= (215, 0, 0)
-RED6= (205, 0, 0)
-RED7= (195, 0, 0)
-RED8= (185, 0, 0)
-RED9= (175, 0, 0)
-RED10= (165, 0, 0)
-RED11= (155, 0, 0)
-RED12= (145, 0, 0)
-RED13= (135, 0, 0)
-RED14= (125, 0, 0)
-RED15= (115, 0, 0)
-RED16= (105, 0, 0)
-RED17= (95, 0, 0)
-RED18= (85, 0, 0)
-RED19= (75, 0, 0)
-RED20= (65, 0, 0)
-RED21= (55, 0, 0)
-RED22= (45, 0, 0)
-RED23= (35, 0, 0)
-RED24= (25, 0, 0)
-RED25= (15, 0, 0)
+RED1= (0,0,255)
+RED2= (0,0,235)
+RED3= (0,0,215)
+RED4= (0,0,195)
+RED5= (0,0,175)
+RED6= (0,0,155)
+RED7= (0,0,145)
+RED8= (0,0,125)
+RED9= (0,0,105)
+RED10= (0,0,165)
+RED11= (0,0,155)
+RED12= (0,0,145)
+RED13= (0,0,135)
+RED14= (0,0,125)
+RED15= (0,0,115)
+RED16= (0,0,105)
+RED17= (0,0,95)
+RED18= (0,0,85)
+RED19= (0,0,75)
+RED20= (0,0,65)
+RED21= (0,0,55)
+RED22= (0,0,45)
+RED23= (0,0,35)
+RED24= (0,0,25)
+RED25= (0,0,15)
 
 GREEN= (0, 204, 0)
 RED= (255, 51, 51)
@@ -100,19 +100,50 @@ def eventHandler():
 def drawBlocks():
     for x,_ in enumerate(agents):
         for y, __ in enumerate(_):
-            color= colors[int((list(agents[y][x])[1]))] if agents[y][x]!= 0 else GREY
+            color= colors[int((list(agents[y][x])[1]))] if agents[y][x]!= -1 else GREY
             pygame.draw.rect(window, color, (x* BLOCK_SIZE, y* BLOCK_SIZE, x* BLOCK_SIZE+ BLOCK_SIZE, y* BLOCK_SIZE+ BLOCK_SIZE))
 
+
+def agentThread(id):
+    agent = agent_ids["p"+str(id+1)]
+    agent.launch()
+
+def simulate():
+    for i in range(agent_number):
+        threading.Thread(target=agentThread, args=(i,)).start()
+
+
 def gameLoop():
+    mat= build()
+    while(not isSolvable3(convMatrix(mat))):
+        mat= build()
+    master= Master()
+    print("Preparing env...\n")
+    try:
+        solution= master.solve_DFS()
+    except:
+        print("NO SOLUTION WAS FOUND")
+        return
+    time.sleep(3)
+    print("Initial state of the matrix:")
+    displayGrid()
+    path= solution['path']
+    simulate()
+    iteration= 0
     while True:
+        if iteration< len(path):
+            print(f"Iteration {iteration}")
+            print(f"Agent {path[iteration]} to move")
+            master.reorient(path[iteration])
+            iteration+= 1 
+        displayGrid()
         window.fill(GREY)
         eventHandler()
         drawBlocks()
         drawGrid()
         pygame.display.update()
         clock.tick(FPS)
+        time.sleep(1)
 
 
-build()
-simulate()
 gameLoop()

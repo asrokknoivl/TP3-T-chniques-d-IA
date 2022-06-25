@@ -1,6 +1,5 @@
 import math
 import random
-import time
 import copy
 from turtle import st
 
@@ -21,10 +20,10 @@ class Master:
     def reorient(self, id):
         agent_ids["p"+str(id)].move()
 
-    def solve(self):
+    def solve_A_STAR(self):
+        print(("CURRENTLY USING A*"))
         paths= {}
         paths[f(0, agent_ids)]= [{'path':[], 'agent_ids': agent_ids, 'agents':agents, 'void':empty_coord, 'steps':0}]
-
         while True:
             current_path_n= min(paths)
             try:
@@ -53,9 +52,88 @@ class Master:
                     paths[f(new_steps, new_agent_ids)].append({'path':new_path, 'agent_ids': new_agent_ids, 'agents':new_agents, 'void':new_void, 'steps':new_steps})
                 except:
                     paths[f(new_steps, new_agent_ids)]=[{'path':new_path, 'agent_ids': new_agent_ids, 'agents':new_agents, 'void':new_void, 'steps':new_steps}]
+
+    def solve_DFS(self):
+        print("CURRENTLY USING DFS")
+        paths= []
+        paths.append({'path':[], 'agent_ids': agent_ids, 'agents':agents, 'void':empty_coord, 'steps':0})
+        self.addToSeen(self.constructSet(agents))
+        while True:
+            current_path= paths.pop()
+            if allAgentsArrived(current_path['agent_ids']):
+                return current_path
+            for agent in agentsThatCanMove(current_path['agents'], current_path['agent_ids'], current_path['void']):
+                new_path= copy.deepcopy(current_path['path'])
+                new_agent_ids= copy.deepcopy(current_path['agent_ids'])
+                new_agents= copy.deepcopy(current_path['agents'])
+                new_void= copy.deepcopy(current_path['void'])
+                new_steps= current_path['steps']
+                new_path.append(agent.id)
+                new_agents[agent.y_current][agent.x_current]= -1
+                new_agents[new_void[1]][new_void[0]]= "p"+str(agent.id)
+                new_agent_ids["p"+str(agent.id)].x_current, new_agent_ids["p"+str(agent.id)].y_current, new_void[0], new_void[1]= new_void[0], new_void[1],new_agent_ids["p"+str(agent.id)].x_current, new_agent_ids["p"+str(agent.id)].y_current
+                new_agent_ids["p"+str(agent.id)].recalcDist()                
+                if self.constructSet(new_agents) in self.seen:
+                    continue
+                self.addToSeen(self.constructSet(new_agents))
+                paths.append({'path':new_path, 'agent_ids': new_agent_ids, 'agents':new_agents, 'void':new_void, 'steps':new_steps})
+    
+    def solve_BFS(self):
+        print("CURRENTLY USING BFS")
+        paths= []
+        paths.append({'path':[], 'agent_ids': agent_ids, 'agents':agents, 'void':empty_coord, 'steps':0})
+        self.addToSeen(self.constructSet(agents))
+        while True:
+            current_path= paths[0]
+            paths= paths[1:]
+            if allAgentsArrived(current_path['agent_ids']):
+                return current_path
+            for agent in agentsThatCanMove(current_path['agents'], current_path['agent_ids'], current_path['void']):
+                new_path= copy.deepcopy(current_path['path'])
+                new_agent_ids= copy.deepcopy(current_path['agent_ids'])
+                new_agents= copy.deepcopy(current_path['agents'])
+                new_void= copy.deepcopy(current_path['void'])
+                new_steps= current_path['steps']
+                new_path.append(agent.id)
+                new_agents[agent.y_current][agent.x_current]= -1
+                new_agents[new_void[1]][new_void[0]]= "p"+str(agent.id)
+                new_agent_ids["p"+str(agent.id)].x_current, new_agent_ids["p"+str(agent.id)].y_current, new_void[0], new_void[1]= new_void[0], new_void[1],new_agent_ids["p"+str(agent.id)].x_current, new_agent_ids["p"+str(agent.id)].y_current
+                new_agent_ids["p"+str(agent.id)].recalcDist()                
+                if self.constructSet(new_agents) in self.seen:
+                    continue
+                self.addToSeen(self.constructSet(new_agents))
+                paths.append({'path':new_path, 'agent_ids': new_agent_ids, 'agents':new_agents, 'void':new_void, 'steps':new_steps})
                 
     
-                
+    def solve_IDS(self, limit):
+        print(f"CURRENTLY USING IDS WITH A MAX DEPTH OF {limit}")
+        paths= []
+        paths.append({'path':[], 'agent_ids': agent_ids, 'agents':agents, 'void':empty_coord, 'steps':0})
+        self.addToSeen(self.constructSet(agents))
+        while True:
+            try:
+                current_path= paths.pop()
+            except:
+                return []
+            if allAgentsArrived(current_path['agent_ids']):
+                return current_path
+            for agent in agentsThatCanMove(current_path['agents'], current_path['agent_ids'], current_path['void']):
+                new_path= copy.deepcopy(current_path['path'])
+                new_agent_ids= copy.deepcopy(current_path['agent_ids'])
+                new_agents= copy.deepcopy(current_path['agents'])
+                new_void= copy.deepcopy(current_path['void'])
+                new_steps= current_path['steps']+1
+                new_path.append(agent.id)
+                new_agents[agent.y_current][agent.x_current]= -1
+                new_agents[new_void[1]][new_void[0]]= "p"+str(agent.id)
+                new_agent_ids["p"+str(agent.id)].x_current, new_agent_ids["p"+str(agent.id)].y_current, new_void[0], new_void[1]= new_void[0], new_void[1],new_agent_ids["p"+str(agent.id)].x_current, new_agent_ids["p"+str(agent.id)].y_current
+                new_agent_ids["p"+str(agent.id)].recalcDist()                
+                if  new_steps>limit or self.constructSet(new_agents) in self.seen:
+                    continue
+                self.addToSeen(self.constructSet(new_agents))
+                paths.append({'path':new_path, 'agent_ids': new_agent_ids, 'agents':new_agents, 'void':new_void, 'steps':new_steps})
+  
+
     def constructSet(self, agents):
         s= ""
         for i in agents:
@@ -75,7 +153,6 @@ def h(agent_ids):
 def f(steps, agent_ids):
     return h(agent_ids)+ steps
 
-
 class Agent:
     def __init__(self, id, x_current, y_current, x_goal, y_goal) -> None:
         self.x_prev= -9999
@@ -85,13 +162,9 @@ class Agent:
         self.x_goal= x_goal
         self.y_goal= y_goal
         self.id= id
-        self.conflictCheck= 0
-        self.ok= False
         self.status= 'Active'
         self.remainingDistance= euclidianDistance(self.x_current, self.y_current, self.x_goal, self.y_goal)
-        self.previousCaseHolder= 0
         self.steps_taken= 0
-        self.green_light= None
 
     def setId(self, id):
         self.id= id
@@ -123,174 +196,22 @@ class Agent:
     def getYGoal(self):
         return self.y_goal
 
-    def moveUp(self):
-        self.x_current -= 5
-
-    def moveDown(self):
-        self.x_current += 5
-    
-    def moveRight(self):
-        self.y_current += 5
-        
-    def moveLeft(self):
-        self.y_current -= 5
-
-    def changeDirection(self, axe):    
-        agents[self.y_current][self.x_current]= 0
-        while axe== 'x':
-            if self.isAvailable(self.x_current+ 1, self.y_current):
-                agents[self.y_current][self.x_current]= 0
-                self.x_current+= 1
-                agents[self.y_current][self.x_current]= "p"+str(self.id)
-                break
-            elif self.isAvailable(self.x_current- 1, self.y_current):
-                agents[self.y_current][self.x_current]= 0
-                self.x_current-= 1
-                agents[self.y_current][self.x_current]= "p"+str(self.id)
-                break
-            else: 
-                if self.y_current> self.y_prev:
-                    agents[self.y_current][self.x_current]= 0
-                    self.y_current-= 1
-                    self.y_prev-= 1
-                    agents[self.y_current][self.x_current]= "p"+str(self.id)
-
-                else:
-                    agents[self.y_current][self.x_current]= 0
-                    self.y_current+= 1
-                    self.y_prev+= 1
-                    agents[self.y_current][self.x_current]= "p"+str(self.id)
-
-        while axe== 'y':
-            if self.isAvailable(self.x_current, self.y_current+ 1):
-                agents[self.y_current][self.x_current]= 0
-                self.y_current+= 1
-                agents[self.y_current][self.x_current]= "p"+str(self.id)
-                break
-            elif self.isAvailable(self.x_current, self.y_current- 1):
-                agents[self.y_current][self.x_current]= 0
-                self.y_current-= 1
-                agents[self.y_current][self.x_current]= "p"+str(self.id)
-                break
-            else: 
-                if self.x_current> self.x_prev:
-                    agents[self.y_current][self.x_current]= 0
-                    self.x_current-= 1
-                    self.x_prev-= 1
-                    agents[self.y_current][self.x_current]= "p"+str(self.id)
-
-                else:
-                    agents[self.y_current][self.x_current]= 0
-                    self.x_current+= 1
-                    self.x_prev+= 1
-                    agents[self.y_current][self.x_current]= "p"+str(self.id)
-
-        time.sleep(1)
-        
-    def findNextMove_GreedySearch(self):
-        distances= euclidianDistances(self, self.x_current, self.y_current, self.x_goal, self.y_goal)
-        self.remainingDistance= min(distances)
-        return distances[min(distances)]
-
-    def findNextMove_ASTAR(self):   
-        distances= euclidianDistances(self, self.x_current, self.y_current, self.x_goal, self.y_goal, True)
-        self.remainingDistance= min(distances)
-        return distances[min(distances)]
-
-
-    def isAvailable(self, x, y):
-        return agents[y][x]== 0 or str(agents[y][x]).startswith('X')
-    
     def move(self):
         self.x_current, self.y_current, empty_coord[0], empty_coord[1]= empty_coord[0], empty_coord[1],self.x_current, self.y_current
         agents[self.y_current][self.x_current]= "p"+str(self.id)
         agents[empty_coord[1]][empty_coord[0]]= -1
         self.recalcDist()
-        
-
 
     def launch(self):
         while not self.hasReachedGoal():
             pass
         self.status= 'Arrived'
     
-    def move__(self):
-        while not self.hasReachedGoal():
-            #print([i.id for i in agentsThatCanMove()])
-            if agentRepositionRequest(self.id):
-                agentsToAsk= agentsThatCanMove()
-                i= 0
-                while i< len(agentsToAsk):
-                    agent= agentsToAsk[i]
-                    if self.id== agent.id or agent.status== 'Arrived' or agent.moveRequest(self):
-                        i+= 1
-                    #print("need approval", self.id, i)
-                    #print(self.id, '  ', i, [i.id for i in agentsToAsk], agent.id, agent.moveRequest(self), ' ', self.id ==agent.id)
-                self.x_current, self.y_current, empty_coord[0], empty_coord[1]= empty_coord[0], empty_coord[1], self.x_current, self.y_current
-                self.steps_taken+= 1
-                self.remainingDistance= euclidianDistance(self.x_current, self.y_current, self.x_goal, self.y_goal)
-                self.updatePos()
-            time.sleep(3*self.id + 5)
-
-
-    def updatePos(self):        
-        agents[self.y_current][self.x_current]= "p"+str(self.id)if self.id!= 8 else -1
-        agents[empty_coord[1]][empty_coord[0]]= -1
-
-    def moveRequest(self, agent):
-        rd1= euclidianDistance(empty_coord[0], empty_coord[1], self.x_goal, self.y_goal)
-        rd2= euclidianDistance(empty_coord[0], empty_coord[1], agent.x_goal, agent.y_goal)
-        if rd1== rd2:
-            return self.id> agent.id
-        return rd1> rd2
-
-    def move_(self, x, y):
-        counter= 0
-        while not self.isAvailable(x, y):
-            self.status= 'Waiting, potential conflict'
-            time.sleep(1)
-            if counter >= 3:
-                self.status= 'At conflict, currently being resolved'
-                self.fightOrFlight(x, y)
-                return
-            counter+= 1
-        self.status= 'Active'
-        self.x_prev= self.x_current
-        self.y_prev= self.y_current
-        self.x_current= x
-        self.y_current= y
-        agents[self.y_prev][self.x_prev]= self.previousCaseHolder
-        self.previousCaseHolder= agents[self.y_current][self.x_current]
-        agents[self.y_current][self.x_current]= "p"+str(self.id) if self.id!= 8 else -1
-        self.steps_taken+= 1
-        self.remainingDistance= euclidianDistance(self.x_current, self.y_current, self.x_goal, self.y_goal)
-        time.sleep(2)
-
     def recalcDist(self):
         self.remainingDistance= euclidianDistance(self.x_current, self.y_current, self.x_goal, self.y_goal)
         
-
-    def fightOrFlight(self, x, y):
-        agent= agent_list[int(list(str(agents[y][x]))[1])]
-        print(agent.id)
-        agent_next_move= agent.findNextMove_GreedySearch()
-        agent_next_x= agent_next_move[0]
-        agent_next_y= agent_next_move[1]
-        if self.x_current== agent_next_x and self.y_current== agent_next_y:
-            if self.remainingDistance > agent.remainingDistance:
-                pass
-            else:
-                self.requestToOpenRoad(agent)
-
-    def requestToOpenRoad(self, agent):
-        agent.recieveToOpenRoad(self)
-
-    def recieveToOpenRoad(self, agent):
-        axe= self.changeDirection('y') if self.x_current== agent.x_current else self.changeDirection('x')
-
     def hasReachedGoal(self):
         return self.remainingDistance==0
-
 
 def euclidianDistance(x, y, x_goal, y_goal): #heuristic function - distance
     x_diff = abs(x - x_goal)
@@ -318,10 +239,9 @@ def displayGrid():
     print()
     for i in agents:
         for j in i:
-            print('..', end= ' ') if j== 0 else print(j, end= ' ')
+            print('..', end= ' ') if j== -1 else print(j, end= ' ')
         print()
     print()
-
 
 def build():
     reserved_coordinates= []
@@ -359,51 +279,66 @@ def agentsThatCanMove(agents, agent_ids, empty_coord):
     l+= [agents[empty_coord[1]][empty_coord[0]-1]] if empty_coord[0]-1 in range(size) else []
     return [agent_ids[x] for x in l if str(x).startswith("p")]
 
-def agentRepositionRequest(id):
-    l= [i.id for i in agentsThatCanMove()]
-    return id in l
-
-
-
-def nextAgentToMove(self):
-    h_val= 66666666
-    agent_id= 66666666
-    for agent in agentsThatCanMove():
-        agent.x_current, agent.y_current, empty_coord[0], empty_coord[1]= empty_coord[0], empty_coord[1], agent.x_current, agent.y_current
-        h= self.heuristic()
-        self.updatePos()
-        s= constructSet()
-        if s not in seen and h< h_val:
-            h_val= h
-            agent_id= agent.id
-            addToSeen(s)
-            agent.x_current, agent.y_current, empty_coord[0], empty_coord[1]= empty_coord[0], empty_coord[1], agent.x_current, agent.y_current
-            self.updatePos()
-    return agent_id
-
-
 def convMatrix(m):
-    x = [[0]* 3 for _ in range(3)]
+    x = [[0]* size for _ in range(size)]
     i= 0
     j= 0
-    while i< 3:
+    while i< size:
         j=0
-        while j< 3:
-            x[i][j]= int(''.join(list(m[i][j])[-1])) if str(m[i][j]).startswith("p") else m[i][j] 
+        while j< size:
+            x[i][j]= int(''.join(list(m[i][j])[1:])) if str(m[i][j]).startswith("p") else 0
             j+=1
         i+=1
     return x
 
-def getInvCount(arr):
+def getInvCount3(arr):
     inv_count = 0
     empty_value = -1
-    for i in range(0, 9):
-        for j in range(i + 1, 9):
+    for i in range(0, size*size):
+        for j in range(i + 1, size*size):
             if arr[j] != empty_value and arr[i] != empty_value and arr[i] > arr[j]:
                 inv_count += 1
     return inv_count
  
      
-def isSolvable(puzzle) :
-    inv_count = getInvCount([j for sub in puzzle for j in sub])
+def isSolvable3(puzzle) :
+    inv_count = getInvCount3([j for sub in puzzle for j in sub])
     return (inv_count % 2 == 0)
+
+N=4
+def getInvCount(arr):
+    arr1=[]
+    for y in arr:
+        for x in y:
+            arr1.append(x)
+    arr=arr1
+    inv_count = 0
+    for i in range(N * N - 1):
+        for j in range(i + 1,N * N):
+            if (arr[j] and arr[i] and arr[i] > arr[j]):
+                inv_count+=1
+         
+     
+    return inv_count
+ 
+ 
+def findXPosition(puzzle):
+    for i in range(N - 1,-1,-1):
+        for j in range(N - 1,-1,-1):
+            if (puzzle[i][j] == 0):
+                return N - i
+ 
+def isSolvable4(puzzle):
+    invCount = getInvCount(puzzle)
+    if (N & 1):
+        return ~(invCount & 1)
+ 
+    else:   
+        pos = findXPosition(puzzle)
+        if (pos & 1):
+            return ~(invCount & 1)
+        else:
+            return invCount & 1
+
+#print(convMatrix([['p9', 'p2', 'p3', 'p13'], ['p11', 'p14', 'p6', 'p8'], ['p5', 'p1', 'p10', 'p15'], ['p4', 'p12', -1, 'p7']]))
+#print("yes") if isSolvable4(convMatrix([['p9', 'p2', 'p3', 'p13'], ['p11', 'p14', 'p6', 'p8'], ['p5', 'p1', 'p10', 'p15'], ['p4', 'p12', -1, 'p7']]))>0 else print("no")
